@@ -1,10 +1,15 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import { StyleSheet, Text, View, Alert } from 'react-native';
 import params from './src/params';
-import Field from './src/components/Field';
 import MineField from './src/components/MineField';
 import {
-    createMinedBoard
+    createMinedBoard,
+    cloneBoard,
+    openField,
+    hadExplosion,
+    wonGame,
+    showMines,
+    invertFlag
 } from "./src/functions";
 
 export default class App extends Component {
@@ -24,8 +29,40 @@ export default class App extends Component {
         const cols = params.getColumnsAmount();
         const rows = params.getRowsAmount();
         return {
-            board: createMinedBoard(rows, cols, this.minesAmount())
+            board: createMinedBoard(rows, cols, this.minesAmount()),
+            won: false,
+            lost: false
         }
+    };
+
+    onOpenField = (row, column) => {
+        const board = cloneBoard(this.state.board);
+        openField(board, row, column);
+        const lost = hadExplosion(board);
+        const won = wonGame(board);
+
+        if ( lost ) {
+            showMines( board );
+            Alert.alert('Perdeeeeeu!', 'Que buuuuuuuuurro!');
+        }
+
+        if ( won ) {
+            Alert.alert('Parabéns', 'Você venceu');
+        }
+
+        this.setState({ board, lost, won });
+    };
+
+    onSelectField = (row, colmun) => {
+        const board = cloneBoard(this.state.board);
+        invertFlag(board, row, colmun);
+        const won = wonGame(board);
+
+        if ( won ) {
+            Alert.alert('Parabéns', 'Você venceu');
+        }
+
+        this.setState({ board, won });
     };
 
     render() {
@@ -37,7 +74,7 @@ export default class App extends Component {
                 </Text>
 
                 <View style={styles.board}>
-                    <MineField board={this.state.board} />
+                    <MineField board={this.state.board} onOpenField={this.onOpenField} onSelectField={this.onSelectField}/>
                 </View>
 
             </View>
